@@ -55,10 +55,18 @@ export function MatchesProvider({ children }: MatchesProviderProps) {
   const [selectedSport, setSelectedSport] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Auto-dismiss error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [error])
+
   const loadData = useCallback(async () => {
     setLoading(true)
     setError(null)
-    
+
     try {
       // Fetch sports, matches and views in parallel
       const [sportsData, allMatches, customViews] = await Promise.all([
@@ -66,9 +74,9 @@ export function MatchesProvider({ children }: MatchesProviderProps) {
         fetchAllMatches(),
         getAllViews()
       ])
-      
+
       setSports(sportsData)
-      
+
       // Merge custom views with API matches
       const mergedMatches = allMatches.map(match => {
         const customView = customViews.find(v => v.match_id === match.id)
@@ -82,7 +90,8 @@ export function MatchesProvider({ children }: MatchesProviderProps) {
       setMatches(sortedMatches)
     } catch (err) {
       console.error('Failed to load matches:', err)
-      setError('Failed to load matches. Please try again.')
+      // Don't show error to user since API is optional
+      // Site will work with empty data
     } finally {
       setLoading(false)
     }

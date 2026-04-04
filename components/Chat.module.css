@@ -284,83 +284,98 @@
   object-fit: contain;
 }
 
-/* Chat Rules Notice */
+/* Chat Rules Notice - Minimal Banner */
 .chatRulesNotice {
-  background: #0d0d14;
+  padding: 0;
+  background: transparent;
   border-bottom: 1px solid #1a1a2e;
-  padding: 12px 14px;
-  margin: 0;
-  position: relative;
+  flex-shrink: 0;
+}
+
+.rulesContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  max-width: none;
 }
 
 .rulesHeader {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #0f0f13;
+  border-bottom: 1px solid #1a1a2e;
 }
 
 .rulesTitle {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  color: #ef4444;
+  color: #666;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .rulesList {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
+  width: 100%;
+  padding: 8px 16px;
+  background: #0a0a0f;
 }
 
 .rule {
   font-size: 11px;
-  color: #888;
-  line-height: 1.4;
+  color: #555;
+  line-height: 1.5;
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  text-align: left;
+  align-items: flex-start;
+  padding: 3px 0;
 }
 
 .ruleBullet {
   color: #333;
   flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .ruleCritical {
-  color: #bbb;
+  color: #8b3a3a;
 }
 
 .ruleCritical strong {
-  color: #ef4444;
+  color: #c44;
   font-weight: 600;
 }
 
-.dismissBtnIcon {
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  background: #1a1a2e;
-  border: none;
-  color: #666;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.agreeBtn {
+  margin: 8px 16px 10px;
+  padding: 7px;
+  background: transparent;
+  color: #444;
+  border: 1px solid #1a1a2e;
+  border-radius: 6px;
   font-size: 10px;
-  font-weight: bold;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
 }
 
-.dismissBtnIcon:hover:not(.dismissBtnDisabled) {
-  background: #ef4444;
-  color: #fff;
-}
-
-.dismissBtnDisabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.agreeBtn:hover:not(:disabled) {
   background: #141420;
+  color: #888;
+  border-color: #2a2a4e;
+}
+
+.agreeBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .statusDot {
@@ -409,6 +424,389 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Message Content Styles */
+.messageContentWrapper {
+  display: inline;
+  margin-top: 2px;
+}
+
+.mention {
+  font-size: 13px;
+  color: #3b82f6;
+  font-weight: 500;
+  background: rgba(59, 130, 246, 0.12);
+  padding: 1px 5px;
+  border-radius: 4px;
+  display: inline;
+  line-height: 1.4;
+}
+
+.link {
+  font-size: 12px;
+  color: #4a9eff;
+  word-break: break-all;
+}
+
+.text {
+  font-size: 13px;
+  color: #ccc;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.image {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 6px;
+  object-fit: cover;
+  display: block;
+  margin-top: 2px;
+}
+
+.sticker {
+  max-width: 48px;
+  max-height: 48px;
+  border-radius: 0;
+  object-fit: contain;
+  display: block;
+  margin-top: 2px;
+}
+
+/* Tag User Display */
+.tagUserDisplay {
+  padding: 8px 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tagUserText {
+  font-size: 12px;
+  color: #3b82f6;
+}
+
+.tagUserText strong {
+  color: #fff;
+}
+
+.cancelTagBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: #888;
+}
+
+/* Login Prompt */
+.loginPrompt {
+  padding: 8px;
+  background: #141420;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.loginPromptText {
+  font-size: 12px;
+  color: #888;
+}
+
+.loginPromptBtn {
+  color: #4a9eff;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* Error Message */
+.errorMessage {
+  padding: 6px 10px;
+  background: #1a0f0f;
+  border: 1px solid #3a1f1f;
+  border-radius: 6px;
+  color: #ff6b6b;
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+/* Scroll Button */
+.scrollButtonAbsolute {
+  position: absolute;
+  bottom: 70px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  background: #141420;
+  border: 1px solid #1e1e2d;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+/* Chat Input Form */
+.chatInputForm {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  position: relative;
+}
+
+.stickerPickerBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.stickerPickerBtnActive {
+  background: #1a1a2e;
+}
+
+.stickerPickerBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+/* Sticker Picker Dropdown */
+.stickerPickerDropdown {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: 300px;
+  max-height: 400px;
+  background: #0a0a0f;
+  border: 1px solid #1a1a2e;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 9999;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+}
+
+.stickerPickerHeader {
+  padding: 12px 16px;
+  background: #141420;
+  border-bottom: 1px solid #1a1a2e;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stickerPickerTitle {
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.stickerPickerCount {
+  font-size: 11px;
+  color: #666;
+}
+
+.stickerGrid {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.stickerBtn {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #1a1a2e;
+  background: #141420;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stickerBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Chat Input */
+.chatInput {
+  flex: 1;
+  padding: 10px 12px;
+  background: #141420;
+  border: 1px solid #1e1e2d;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+}
+
+.chatInput:disabled {
+  opacity: 0.5;
+}
+
+.sendButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  opacity: 0.3;
+}
+
+.sendButtonEnabled {
+  opacity: 1;
+}
+
+.sendButton:disabled {
+  cursor: not-allowed;
+}
+
+/* Status Styles */
+.statusDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.statusDotConnecting {
+  background: #fbbf24;
+  animation: pulseYellow 1.5s ease-in-out infinite;
+}
+
+.statusDotConnected {
+  background: #22c55e;
+}
+
+.statusDotDisconnected {
+  background: #ef4444;
+}
+
+.statusText {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.statusTextConnecting { color: #fbbf24; }
+.statusTextConnected { color: #22c55e; }
+.statusTextDisconnected { color: #ef4444; }
+
+/* Message Wrapper */
+.messageWrapper {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.messageAvatarWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.messageAvatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.messageAvatarPlaceholder {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #333;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.messageBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.messageMeta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.messageUsername {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.messageUsername:hover {
+  color: #3b82f6;
+}
+
+.messageTimestamp {
+  font-size: 10px;
+  color: #555;
+}
+
+.badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.badgeAdmin {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.4);
+}
+
+.badgeDev {
+  background: rgba(139, 92, 246, 0.2);
+  color: #8b5cf6;
+  box-shadow: 0 0 6px rgba(139, 92, 246, 0.3);
+}
+
+.badgeVip {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.emptyMessage {
+  color: #555;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 80px;
+}
+
+.stickerPickerContainer {
+  position: relative;
+}
+
 @media (max-width: 1200px) {
   .chatSection {
     width: 280px !important;
@@ -423,6 +821,7 @@
     min-width: auto !important;
     max-width: none !important;
     height: auto !important;
+    min-height: 400px !important;
     flex: 1 !important;
     border-left: none !important;
   }

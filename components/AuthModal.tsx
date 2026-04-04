@@ -71,20 +71,20 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   }
 
   return (
-    <div 
+    <div
       className={styles.overlay}
       onClick={onClose}
     >
-      <div 
+      <div
         className={styles.modal}
         onClick={(e) => e.stopPropagation()}
       >
-        
+
         <div className={styles.header}>
           <h1 className={styles.title}>
             {isLogin ? 'Sign In' : 'Sign Up'}
           </h1>
-          <button 
+          <button
             onClick={onClose}
             className={styles.closeButton}
           >
@@ -100,12 +100,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputWrapper}>
-            <svg 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="#666" 
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#666"
               strokeWidth="2"
               className={styles.inputIcon}
             >
@@ -118,7 +118,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               onChange={(e) => setUsername(e.target.value)}
               onBlur={() => handleBlur('username')}
               placeholder="Username"
-              className={`${styles.input} ${getFieldError('username', username) ? styles.inputError : ''}`}
+              className={styles.input}
             />
             {getFieldError('username', username) && (
               <span className={styles.fieldError}>
@@ -129,12 +129,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
           {!isLogin && (
             <div className={styles.inputWrapper}>
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="#666" 
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#666"
                 strokeWidth="2"
                 className={styles.inputIcon}
               >
@@ -147,7 +147,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => handleBlur('email')}
                 placeholder="Email"
-                className={`${styles.input} ${getFieldError('email', email) ? styles.inputError : ''}`}
+                className={styles.input}
               />
               {getFieldError('email', email) && (
                 <span className={styles.fieldError}>
@@ -158,12 +158,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           )}
 
           <div className={styles.inputWrapper}>
-            <svg 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="#666" 
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#666"
               strokeWidth="2"
               className={styles.inputIcon}
             >
@@ -176,7 +176,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               onChange={(e) => setPassword(e.target.value)}
               onBlur={() => handleBlur('password')}
               placeholder="Password"
-              className={`${styles.input} ${getFieldError('password', password) ? styles.inputError : ''}`}
+              className={styles.input}
             />
             {getFieldError('password', password) && (
               <span className={styles.fieldError}>
@@ -196,14 +196,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
         <div className={styles.footer}>
           {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
-          <button 
+          <button
             onClick={switchMode}
             className={styles.switchButton}
           >
             {isLogin ? 'Sign up' : 'Sign in'}
           </button>
         </div>
-        
+
       </div>
     </div>
   )

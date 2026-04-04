@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '../../components/Navbar'
+import DefaultSourceTab from './DefaultSourceTab'
 import styles from './AdminPage.module.css'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -35,9 +36,9 @@ interface ChatMessage {
 }
 
 const BADGE_CONFIG = {
-  admin: { label: 'ADMIN', color: '#3b82f6', bg: 'rgba(251, 191, 36, 0.15)', glow: '0 0 8px rgba(251, 191, 36, 0.5)' },
-  dev: { label: 'DEV', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.2)', glow: '0 0 8px rgba(139, 92, 246, 0.4)' },
-  vip: { label: 'VIP', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', glow: 'none' }
+  admin: { label: 'ADMIN', className: 'badgeAdmin' },
+  dev: { label: 'DEV', className: 'badgeDev' },
+  vip: { label: 'VIP', className: 'badgeVip' }
 }
 
 export default function AdminPage() {
@@ -47,14 +48,14 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  
+
   // Login form
   const [loginData, setLoginData] = useState({ username: '', password: '' })
-  
+
   // Data
   const [users, setUsers] = useState<User[]>([])
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
-  const [activeTab, setActiveTab] = useState<'users' | 'chat'>('users')
+  const [activeTab, setActiveTab] = useState<'users' | 'chat' | 'sources'>('users')
   
   // Search & Filter
   const [userSearch, setUserSearch] = useState('')
@@ -458,6 +459,17 @@ export default function AdminPage() {
               </svg>
               Chat Moderation
             </button>
+            <button
+              onClick={() => setActiveTab('sources')}
+              className={`${styles.tab} ${activeTab === 'sources' ? styles.tabActive : ''}`}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+              </svg>
+              Source Control
+            </button>
           </div>
 
           {/* Users Tab */}
@@ -536,13 +548,8 @@ export default function AdminPage() {
                               {user.username}
                             </span>
                             {user.badge && (
-                              <span 
-                                className={styles.badge}
-                                style={{
-                                  background: BADGE_CONFIG[user.badge].bg,
-                                  color: BADGE_CONFIG[user.badge].color,
-                                  boxShadow: BADGE_CONFIG[user.badge].glow,
-                                }}
+                              <span
+                                className={`${styles.badge} ${styles[BADGE_CONFIG[user.badge].className]}`}
                               >
                                 {BADGE_CONFIG[user.badge].label}
                               </span>
@@ -676,13 +683,8 @@ export default function AdminPage() {
                               {msg.username}
                             </span>
                             {msg.badge && (
-                              <span 
-                                className={styles.badge}
-                                style={{
-                                  background: BADGE_CONFIG[msg.badge].bg,
-                                  color: BADGE_CONFIG[msg.badge].color,
-                                  boxShadow: BADGE_CONFIG[msg.badge].glow,
-                                }}
+                              <span
+                                className={`${styles.badge} ${styles[BADGE_CONFIG[msg.badge].className]}`}
                               >
                                 {BADGE_CONFIG[msg.badge].label}
                               </span>
@@ -707,6 +709,11 @@ export default function AdminPage() {
                 )}
               </div>
             </>
+          )}
+
+          {/* Source Control Tab */}
+          {activeTab === 'sources' && (
+            <DefaultSourceTab token={token} showMessage={showMessage} />
           )}
 
         </div>
@@ -742,19 +749,16 @@ export default function AdminPage() {
                 <div className={styles.badgeGrid}>
                   {[
                     { value: '', label: 'None' },
-                    { value: 'admin', label: 'ADMIN', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)' },
-                    { value: 'dev', label: 'DEV', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.15)' },
-                    { value: 'vip', label: 'VIP', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)' }
+                    { value: 'admin', label: 'ADMIN', className: 'badgeAdmin' },
+                    { value: 'dev', label: 'DEV', className: 'badgeDev' },
+                    { value: 'vip', label: 'VIP', className: 'badgeVip' }
                   ].map((badge) => (
                     <button
                       key={badge.value}
                       onClick={() => setEditData({...editData, badge: badge.value as any})}
-                      className={styles.badgeButton}
+                      className={`${styles.badgeButton} ${editData.badge === badge.value ? (badge.className ? styles[badge.className as keyof typeof styles] : '') : ''}`}
                       style={{
-                        background: editData.badge === badge.value ? (badge.bg || '#141420') : '#0a0a0f',
-                        borderColor: editData.badge === badge.value ? (badge.color || '#252530') : '#1a1a25',
-                        color: badge.color || '#888',
-                        fontWeight: editData.badge === badge.value ? 700 : 500,
+                        background: editData.badge === badge.value && badge.className ? undefined : '#0a0a0f',
                       }}
                     >
                       {badge.label}

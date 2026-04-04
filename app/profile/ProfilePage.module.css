@@ -388,3 +388,14 @@
     max-width: 100% !important;
   }
 }
+
+/* Preview Name - dynamic styles for color and glow */
+.previewName {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.previewText {
+  font-size: 12px;
+  color: #444;
+}

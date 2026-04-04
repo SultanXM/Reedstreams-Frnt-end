@@ -171,7 +171,7 @@
 }
 
 .tabActive {
-  border-bottom-color: #3b82f6;
+  border-bottom-color: var(--parrot-green);
   color: #fff;
 }
 
@@ -552,10 +552,10 @@
 .btnSaveModal {
   flex: 1;
   padding: 12px;
-  background: #3b82f6;
+  background: var(--parrot-green);
   border: none;
   border-radius: 8px;
-  color: #fff;
+  color: #000;
   font-size: 14px;
   fontWeight: 600;
   cursor: pointer;
@@ -581,4 +581,61 @@
 .btnCancelModal:hover {
   background: #141420;
   color: #fff;
+}
+
+/* Source Control - matches itemCard style */
+.itemCardDefault {
+  border-color: var(--parrot-green);
+  background: linear-gradient(135deg, #0f0f1a 0%, #0a1f0a 100%);
+}
+
+.itemCardInactive {
+  opacity: 0.5;
+}
+
+.sourceLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badgeDefault {
+  padding: 2px 8px;
+  background: rgba(164, 198, 57, 0.15);
+  border-radius: 4px;
+  font-size: 10px;
+  color: var(--parrot-green);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.badgeInactive {
+  padding: 2px 8px;
+  background: rgba(136, 136, 136, 0.15);
+  border-radius: 4px;
+  font-size: 10px;
+  color: #888;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.btnSmallActive {
+  background: rgba(164, 198, 57, 0.15);
+  border-color: var(--parrot-green);
+  color: var(--parrot-green);
+}
+
+.btnSmall:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

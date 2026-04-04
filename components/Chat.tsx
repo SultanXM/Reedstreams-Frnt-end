@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { getMessages, sendMessage, ChatMessage } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import AuthModal from './AuthModal'
+import styles from './Chat.module.css'
 
 //Bro i had no way i added this stickers with jugad
 
@@ -97,8 +98,8 @@ export default function Chat({ showRules = true, width = '420px', className = ''
   }, [])
 
   useEffect(() => {
-    if (!showScrollButton) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (!showScrollButton && chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
     }
   }, [messages, showScrollButton])
 
@@ -110,7 +111,9 @@ export default function Chat({ showRules = true, width = '420px', className = ''
   }
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    }
     setShowScrollButton(false)
   }
 
@@ -180,70 +183,49 @@ export default function Chat({ showRules = true, width = '420px', className = ''
   }
 
   return (
-    <div className={`chat-section ${className}`} style={{
+    <div className={`${styles.chatSection} ${className}`} style={{
       width: width,
       minWidth: width,
       maxWidth: width,
-      background: '#050505',
-      borderLeft: '1px solid #1a1a2e',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      overflow: 'hidden',
       ...style
     }}>
-      <div className="chat-header" style={{
-        padding: '10px 14px',
-        background: '#050505',
-        borderBottom: '1px solid #1a1a2e',
-        fontSize: '13px',
-        fontWeight: '600',
-        color: '#fff',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexShrink: 0,
-        textTransform: 'lowercase'
-      }}>
+      <div className={styles.chatHeader}>
         <span>chat</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span className={`status-dot ${chatStatus}`} style={{ width: '5px', height: '5px' }} />
-          <span className={`status-text ${chatStatus}`} style={{ fontSize: '11px' }}>
+          <span className={`${styles.statusDot} ${styles[`statusDot${chatStatus === 'connecting..' ? 'Connecting' : chatStatus === 'connected' ? 'Connected' : 'Disconnected'}`]}`} />
+          <span className={`${styles.statusText} ${styles[`statusText${chatStatus === 'connecting..' ? 'Connecting' : chatStatus === 'connected' ? 'Connected' : 'Disconnected'}`]}`}>
             {chatStatus === 'connecting..' ? 'connecting' : chatStatus === 'connected' ? 'connected' : 'disconnected'}
           </span>
         </div>
       </div>
 
       {showChatWarning && (
-        <div className="chat-rules-notice">
-          <div className="rules-header">
-            <span className="rules-title">Chat Rules</span>
-            <button 
-              onClick={() => setShowChatWarning(false)} 
-              className={`dismiss-btn-icon ${dismissTimer > 0 ? 'disabled' : ''}`}
+        <div className={styles.chatRulesNotice}>
+          <div className={styles.rulesContent}>
+            <div className={styles.rulesHeader}>
+              <span className={styles.rulesTitle}>Chat Rules</span>
+            </div>
+            <div className={styles.rulesList}>
+              <div className={`${styles.rule} ${styles.ruleCritical}`}>
+                <span className={styles.ruleBullet}>•</span>
+                <span>Promoting other sites = <strong>Instant Ban</strong></span>
+              </div>
+              <div className={styles.rule}>
+                <span className={styles.ruleBullet}>•</span>
+                <span>No hate speech or harassment</span>
+              </div>
+              <div className={styles.rule}>
+                <span className={styles.ruleBullet}>•</span>
+                <span>Admins can ban for inappropriate behavior</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowChatWarning(false)}
+              className={styles.agreeBtn}
               disabled={dismissTimer > 0}
             >
-              {dismissTimer > 0 ? dismissTimer : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              )}
+              {dismissTimer > 0 ? `Wait ${dismissTimer}s` : 'I Agree'}
             </button>
-          </div>
-          <div className="rules-list">
-            <div className="rule critical">
-              <span className="rule-bullet">•</span>
-              <span>Do not promote other streaming sites — <strong>Instant Ban</strong></span>
-            </div>
-            <div className="rule">
-              <span className="rule-bullet">•</span>
-              <span>No hate speech or harassment</span>
-            </div>
-            <div className="rule">
-              <span className="rule-bullet">•</span>
-              <span>Admins can ban for inappropriate behavior</span>
-            </div>
           </div>
         </div>
       )}
@@ -251,111 +233,54 @@ export default function Chat({ showRules = true, width = '420px', className = ''
       <div
         ref={chatContainerRef}
         onScroll={handleScroll}
-        style={{
-          flex: 1,
-          padding: '10px',
-          overflowY: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          minHeight: 0
-        }}
+        className={styles.messagesContainer}
       >
         {messages.length === 0 && !showChatWarning ? (
-          <p style={{ color: '#555', fontSize: '13px', textAlign: 'center', marginTop: '80px' }}>
+          <p className={styles.emptyMessage}>
             No messages yet. Be the first to chat!
           </p>
         ) : (
           messages.map((msg) => (
-            <div key={msg.id} style={{
-              display: 'flex',
-              gap: '8px',
-              alignItems: 'flex-start'
-            }}>
-              <div style={{ position: 'relative', flexShrink: 0 }}>
+            <div key={msg.id} className={styles.messageWrapper}>
+              <div className={styles.messageAvatarWrapper}>
                 {msg.profile_pic_url ? (
-                  <img 
-                    src={msg.profile_pic_url} 
+                  <img
+                    src={msg.profile_pic_url}
                     alt={msg.username}
-                    style={{
-                      width: '26px',
-                      height: '26px',
-                      borderRadius: '50%',
-                      objectFit: 'cover'
-                    }}
+                    className={styles.messageAvatar}
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
+                      const placeholder = (e.target as HTMLImageElement).parentElement?.querySelector(`.${styles.messageAvatarPlaceholder}`);
+                      if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
                     }}
                   />
-                ) : null}
-                <div 
-                  style={{
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '50%',
-                    background: '#333',
-                    display: msg.profile_pic_url ? 'none' : 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '11px',
-                    color: '#666'
-                  }}
-                >
-                  {msg.username.charAt(0).toUpperCase()}
-                </div>
+                ) : (
+                  <div className={styles.messageAvatarPlaceholder}>
+                    {msg.username.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
-              
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  flexWrap: 'wrap'
-                }}>
+
+              <div className={styles.messageBody}>
+                <div className={styles.messageMeta}>
                   <button
                     onClick={() => handleTagUser(msg.username)}
+                    className={styles.messageUsername}
                     style={{
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                      fontSize: '12px',
-                      fontWeight: 'bold',
                       color: msg.name_color || '#888',
-                      textShadow: (msg.name_glow || 0) > 0 && msg.name_color 
-                        ? `0 0 ${msg.name_glow}px ${msg.name_color}` 
+                      textShadow: (msg.name_glow || 0) > 0 && msg.name_color
+                        ? `0 0 ${msg.name_glow}px ${msg.name_color}`
                         : 'none'
                     }}
                   >
                     {msg.username}
                   </button>
                   {msg.badge && (
-                    <span style={{
-                      fontSize: '9px',
-                      padding: '2px 6px',
-                      borderRadius: '3px',
-                      fontWeight: 700,
-                      letterSpacing: '0.5px',
-                      ...(msg.badge === 'admin' ? {
-                        background: 'rgba(59, 130, 246, 0.15)',
-                        color: '#3b82f6',
-                        boxShadow: '0 0 6px rgba(59, 130, 246, 0.4)'
-                      } : msg.badge === 'dev' ? {
-                        background: 'rgba(139, 92, 246, 0.2)',
-                        color: '#8b5cf6',
-                        boxShadow: '0 0 6px rgba(139, 92, 246, 0.3)'
-                      } : {
-                        background: 'rgba(239, 68, 68, 0.15)',
-                        color: '#ef4444'
-                      })
-                    }}>
+                    <span className={`${styles.badge} ${styles[`badge${msg.badge === 'admin' ? 'Admin' : msg.badge === 'dev' ? 'Dev' : 'Vip'}`]}`}>
                       {msg.badge === 'admin' ? 'ADMIN' : msg.badge === 'dev' ? 'DEV' : 'VIP'}
                     </span>
                   )}
-                  <span style={{
-                    fontSize: '10px',
-                    color: '#555'
-                  }}>
+                  <span className={styles.messageTimestamp}>
                     {formatTime(msg.created_at)}
                   </span>
                 </div>
@@ -370,21 +295,7 @@ export default function Chat({ showRules = true, width = '420px', className = ''
       {showScrollButton && (
         <button
           onClick={scrollToBottom}
-          style={{
-            position: 'absolute',
-            bottom: '70px',
-            right: '20px',
-            width: '32px',
-            height: '32px',
-            background: '#141420',
-            border: '1px solid #1e1e2d',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            zIndex: 10
-          }}
+          className={styles.scrollButtonAbsolute}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
             <polyline points="6 9 12 15 18 9"></polyline>
@@ -392,49 +303,21 @@ export default function Chat({ showRules = true, width = '420px', className = ''
         </button>
       )}
 
-      <div style={{
-        padding: '10px',
-        borderTop: '1px solid #1a1a2e',
-        flexShrink: 0
-      }}>
-          {error && (
-          <div style={{
-            padding: '6px 10px',
-            background: '#1a0f0f',
-            border: '1px solid #3a1f1f',
-            borderRadius: '6px',
-            color: '#ff6b6b',
-            fontSize: '11px',
-            marginBottom: '8px'
-          }}>
+      <div className={styles.inputSection}>
+        {error && (
+          <div className={styles.errorMessage}>
             {error}
           </div>
         )}
 
         {taggingUser && (
-          <div style={{
-            padding: '8px 12px',
-            background: 'rgba(59, 130, 246, 0.1)',
-            border: '1px solid rgba(59, 130, 246, 0.3)',
-            borderRadius: '6px',
-            marginBottom: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <span style={{ fontSize: '12px', color: '#3b82f6' }}>
-              Tagging <strong style={{ color: '#fff' }}>@{taggingUser}</strong>
+          <div className={styles.tagUserDisplay}>
+            <span className={styles.tagUserText}>
+              Tagging <strong>@{taggingUser}</strong>
             </span>
             <button
               onClick={handleCancelTag}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '2px 6px',
-                fontSize: '11px',
-                color: '#888'
-              }}
+              className={styles.cancelTagBtn}
             >
               ✕
             </button>
@@ -442,24 +325,12 @@ export default function Chat({ showRules = true, width = '420px', className = ''
         )}
 
         {!user && (
-          <div style={{
-            padding: '8px',
-            background: '#141420',
-            borderRadius: '6px',
-            marginBottom: '8px',
-            textAlign: 'center'
-          }}>
-            <span style={{ fontSize: '12px', color: '#888' }}>
+          <div className={styles.loginPrompt}>
+            <span className={styles.loginPromptText}>
               Please{' '}
-              <button 
+              <button
                 onClick={() => setAuthModalOpen(true)}
-                style={{
-                  color: '#4a9eff',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
+                className={styles.loginPromptBtn}
               >
                 login
               </button>
@@ -468,24 +339,14 @@ export default function Chat({ showRules = true, width = '420px', className = ''
           </div>
         )}
 
-        <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '6px', alignItems: 'center', position: 'relative' }}>
+        <form onSubmit={handleSendMessage} className={styles.chatInputForm}>
           {/* Sticker Picker */}
-          <div ref={memePickerRef} style={{ position: 'relative' }}>
+          <div ref={memePickerRef} className={styles.stickerPickerContainer}>
             <button
               type="button"
               onClick={() => user && setShowMemePicker(!showMemePicker)}
               disabled={!user}
-              style={{
-                background: showMemePicker ? '#1a1a2e' : 'none',
-                border: 'none',
-                cursor: user ? 'pointer' : 'not-allowed',
-                padding: '6px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: user ? 1 : 0.3,
-                borderRadius: '6px'
-              }}
+              className={`${styles.stickerPickerBtn} ${showMemePicker ? styles.stickerPickerBtnActive : ''}`}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
                 <circle cx="12" cy="12" r="10"></circle>
@@ -494,46 +355,20 @@ export default function Chat({ showRules = true, width = '420px', className = ''
                 <line x1="15" y1="9" x2="15.01" y2="9"></line>
               </svg>
             </button>
-            
+
             {/* Sticker Picker Dropdown */}
             {showMemePicker && user && (
-              <div style={{
-                position: 'absolute',
-                bottom: 'calc(100% + 8px)',
-                left: 0,
-                width: '300px',
-                maxHeight: '400px',
-                background: '#0a0a0f',
-                border: '1px solid #1a1a2e',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                zIndex: 9999,
-                boxShadow: '0 10px 40px rgba(0,0,0,0.8)'
-              }}>
-                <div style={{
-                  padding: '12px 16px',
-                  background: '#141420',
-                  borderBottom: '1px solid #1a1a2e',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}>
-                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#fff' }}>
+              <div className={styles.stickerPickerDropdown}>
+                <div className={styles.stickerPickerHeader}>
+                  <span className={styles.stickerPickerTitle}>
                     Pepe Stickers
                   </span>
-                  <span style={{ fontSize: '11px', color: '#666' }}>
+                  <span className={styles.stickerPickerCount}>
                     {PEPE_STICKERS.length}
                   </span>
                 </div>
-                
-                <div style={{
-                  padding: '12px',
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(4, 1fr)',
-                  gap: '10px',
-                  maxHeight: '320px',
-                  overflowY: 'auto'
-                }}>
+
+                <div className={styles.stickerGrid}>
                   {PEPE_STICKERS.map((sticker, idx) => (
                     <button
                       key={idx}
@@ -541,27 +376,11 @@ export default function Chat({ showRules = true, width = '420px', className = ''
                         handleSendMeme(sticker.url)
                         setShowMemePicker(false)
                       }}
-                      style={{
-                        aspectRatio: '1',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        border: '1px solid #1a1a2e',
-                        background: '#141420',
-                        cursor: 'pointer',
-                        padding: '6px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
+                      className={styles.stickerBtn}
                     >
-                      <img 
-                        src={sticker.url} 
+                      <img
+                        src={sticker.url}
                         alt={sticker.name}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain'
-                        }}
                       />
                     </button>
                   ))}
@@ -575,30 +394,12 @@ export default function Chat({ showRules = true, width = '420px', className = ''
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder={user ? "Type a message..." : "Login to chat"}
             disabled={!user || loading}
-            style={{
-              flex: 1,
-              padding: '10px 12px',
-              background: '#141420',
-              border: '1px solid #1e1e2d',
-              borderRadius: '6px',
-              color: '#fff',
-              fontSize: '13px',
-              outline: 'none',
-              opacity: !user ? 0.5 : 1
-            }}
+            className={styles.chatInput}
           />
-          <button 
+          <button
             type="submit"
             disabled={!user || loading || !newMessage.trim()}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: (user && !loading) ? 'pointer' : 'not-allowed',
-              padding: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              opacity: (user && !loading && newMessage.trim()) ? 1 : 0.3
-            }}
+            className={`${styles.sendButton} ${(!user || loading || !newMessage.trim()) ? '' : styles.sendButtonEnabled}`}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
               <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -611,114 +412,15 @@ export default function Chat({ showRules = true, width = '420px', className = ''
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
 
       <style jsx>{`
-        .chat-rules-notice {
-          background: #0d0d14;
-          border-bottom: 1px solid #1a1a2e;
-          padding: 12px 14px;
-          margin: 0;
-          position: relative;
-        }
-        .rules-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 8px;
-        }
-        .rules-title {
-          font-size: 11px;
-          font-weight: 700;
-          color: #ef4444;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-        .rules-list {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-        .rule {
-          font-size: 11px;
-          color: #888;
-          line-height: 1.4;
-          display: flex;
-          gap: 6px;
-        }
-        .rule-bullet {
-          color: #333;
-          flex-shrink: 0;
-        }
-        .rule.critical {
-          color: #bbb;
-        }
-        .rule.critical strong {
-          color: #ef4444;
-          font-weight: 600;
-        }
-        .dismiss-btn-icon {
-          width: 22px;
-          height: 22px;
-          border-radius: 4px;
-          background: #1a1a2e;
-          border: none;
-          color: #666;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          font-size: 10px;
-          font-weight: bold;
-        }
-        .dismiss-btn-icon:hover:not(.disabled) {
-          background: #ef4444;
-          color: #fff;
-        }
-        .dismiss-btn-icon.disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-          background: #141420;
-        }
-
-        .status-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          display: inline-block;
-        }
-        .status-dot.connecting {
-          background: #fbbf24;
-          animation: pulse-yellow 1.5s ease-in-out infinite;
-        }
-        .status-dot.connected {
-          background: #22c55e;
-        }
-        .status-dot.disconnected {
-          background: #ef4444;
-        }
-        .status-text {
-          font-size: 10px;
-          font-weight: 500;
-          text-transform: uppercase;
-          letter-spacing: 0.3px;
-        }
-        .status-text.connecting { color: #fbbf24; }
-        .status-text.connected { color: #22c55e; }
-        .status-text.disconnected { color: #ef4444; }
-
-        @keyframes pulse-yellow {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(0.85); }
-        }
-
         @media (max-width: 1200px) {
-          .chat-section {
+          .chatSection {
             width: 280px !important;
             min-width: 280px !important;
             max-width: 280px !important;
           }
         }
         @media (max-width: 1024px) {
-          .chat-section {
+          .chatSection {
             width: 100% !important;
             min-width: auto !important;
             max-width: none !important;
@@ -737,6 +439,7 @@ function MessageContent({ content }: { content: string }) {
   const mentionRegex = /@(\w+)/g
 
   const parts: { type: 'text' | 'image' | 'link' | 'mention'; content: string }[] = []
+
   let lastIndex = 0
   let match
 
@@ -747,7 +450,7 @@ function MessageContent({ content }: { content: string }) {
   while ((match = urlRegex.exec(contentWithMentions)) !== null) {
     const url = match[0]
     const index = match.index
-    
+
     if (index > lastIndex) {
       const textPart = contentWithMentions.slice(lastIndex, index)
       const textSegments = textPart.split(/\u0000MENTION:|\u0000/)
@@ -759,18 +462,18 @@ function MessageContent({ content }: { content: string }) {
         }
       })
     }
-    
-    const isImage = /\.(gif|jpg|jpeg|png|webp|svg)(\?.*)?$/i.test(url) || 
+
+    const isImage = /\.(gif|jpg|jpeg|png|webp|svg)(\?.*)?$/i.test(url) ||
                     /giphy\.com\/media/i.test(url) ||
                     /media\d+\.giphy\.com/i.test(url) ||
                     /iconify\.design/i.test(url) ||
                     /cdnstep\.com/i.test(url)
-    
+
     parts.push({ type: isImage ? 'image' : 'link', content: url })
-    
+
     lastIndex = index + url.length
   }
-  
+
   if (lastIndex < contentWithMentions.length) {
     const textPart = contentWithMentions.slice(lastIndex)
     const textSegments = textPart.split(/\u0000MENTION:|\u0000/)
@@ -782,30 +485,24 @@ function MessageContent({ content }: { content: string }) {
       }
     })
   }
-  
+
   if (parts.length === 0) {
     parts.push({ type: 'text', content })
   }
-  
+
   return (
-    <div style={{ display: 'inline', marginTop: '2px' }}>
+    <div className={styles.messageContentWrapper}>
       {parts.map((part, idx) => {
         if (part.type === 'image') {
           const isSticker = part.content.includes('iconify.design') || part.content.includes('cdnstep.com')
           return (
-            <img 
+            <img
               key={idx}
               src={part.content}
               alt=""
               loading="lazy"
-              style={{ 
-                maxWidth: isSticker ? '48px' : '200px', 
-                maxHeight: isSticker ? '48px' : '150px', 
-                borderRadius: isSticker ? '0' : '6px', 
-                objectFit: isSticker ? 'contain' : 'cover',
-                display: 'block'
-              }}
-              onError={(e) => { 
+              className={isSticker ? styles.sticker : styles.image}
+              onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none'
               }}
             />
@@ -813,12 +510,12 @@ function MessageContent({ content }: { content: string }) {
         }
         if (part.type === 'link') {
           return (
-            <a 
+            <a
               key={idx}
               href={part.content}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ fontSize: '12px', color: '#4a9eff', wordBreak: 'break-all' }}
+              className={styles.link}
             >
               {part.content}
             </a>
@@ -826,25 +523,16 @@ function MessageContent({ content }: { content: string }) {
         }
         if (part.type === 'mention') {
           return (
-            <span 
-              key={idx} 
-              style={{ 
-                fontSize: '13px', 
-                color: '#3b82f6', 
-                fontWeight: 500,
-                background: 'rgba(59, 130, 246, 0.12)',
-                padding: '1px 5px',
-                borderRadius: '4px',
-                display: 'inline',
-                lineHeight: '1.4'
-              }}
+            <span
+              key={idx}
+              className={styles.mention}
             >
               @{part.content}
             </span>
           )
         }
         return (
-          <span key={idx} style={{ fontSize: '13px', color: '#ccc', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}>
+          <span key={idx} className={styles.text}>
             {part.content}
           </span>
         )

@@ -8,18 +8,23 @@ function getToken() {
 }
 
 export async function register(username: string, email: string, password: string) {
-  const res = await fetch(`${API_URL}/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, email, password }),
-  })
-  
-  if (!res.ok) {
-    const error = await res.text()
-    throw new Error(error)
+  try {
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password }),
+    })
+
+    if (!res.ok) {
+      const error = await res.text()
+      throw new Error(error)
+    }
+
+    return res.json()
+  } catch (error) {
+    console.warn('Registration failed:', error)
+    throw error
   }
-  
-  return res.json()
 }
 
 export async function login(username: string, password: string) {
@@ -66,13 +71,19 @@ export interface ChatMessage {
 }
 
 export async function getMessages(limit: number = 50, offset: number = 0): Promise<ChatMessage[]> {
-  const res = await fetch(`${API_URL}/chat/messages?limit=${limit}&offset=${offset}`)
-  
-  if (!res.ok) {
-    throw new Error('Failed to fetch messages')
+  try {
+    const res = await fetch(`${API_URL}/chat/messages?limit=${limit}&offset=${offset}`)
+
+    if (!res.ok) {
+      console.warn('Failed to fetch chat messages, returning empty array')
+      return []
+    }
+
+    return res.json()
+  } catch (error) {
+    console.warn('Error fetching chat messages:', error)
+    return []
   }
-  
-  return res.json()
 }
 
 export async function sendMessage(content: string) {
@@ -231,35 +242,64 @@ export async function changeUsername(newUsername: string) {
 }
 
 export async function trackView(matchId: string) {
-  const res = await fetch(`${API_URL}/views/track`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ match_id: matchId }),
-  })
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 3000)
+    
+    const res = await fetch(`${API_URL}/views/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ match_id: matchId }),
+      signal: controller.signal
+    })
+    clearTimeout(timeout)
 
-  if (!res.ok) {
+    if (!res.ok) {
+      return { views: 0 }
+    }
+
+    return res.json()
+  } catch (error) {
     return { views: 0 }
   }
-
-  return res.json()
 }
 
 export async function getViews(matchId: string) {
-  const res = await fetch(`${API_URL}/views/${matchId}`)
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 3000)
+    
+    const res = await fetch(`${API_URL}/views/${matchId}`, {
+      signal: controller.signal
+    })
+    clearTimeout(timeout)
 
-  if (!res.ok) {
+    if (!res.ok) {
+      return { views: 0 }
+    }
+
+    return res.json()
+  } catch (error) {
     return { views: 0 }
   }
-
-  return res.json()
 }
 
 export async function getAllViews(): Promise<{ match_id: string, views: number }[]> {
-  const res = await fetch(`${API_URL}/views/all`)
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 3000)
+    
+    const res = await fetch(`${API_URL}/views/all`, {
+      signal: controller.signal
+    })
+    clearTimeout(timeout)
 
-  if (!res.ok) {
+    if (!res.ok) {
+      return []
+    }
+
+    return res.json()
+  } catch (error) {
     return []
   }
-
-  return res.json()
 }

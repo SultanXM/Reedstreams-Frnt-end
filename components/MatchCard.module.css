@@ -6,219 +6,287 @@
 }
 
 .matchCard {
-  background: #0a0a0f;
-  border-radius: 8px;
+  background: var(--bg-secondary);
+  border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #1a1a2e;
+  border: 1px solid var(--border-color);
   transition: all 0.2s ease;
-  height: 100%;
   display: flex;
   flex-direction: column;
   position: relative;
+  padding: 16px;
+}
+
+.matchCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  bottom: 0;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: 10px 0 0 0;
+}
+
+.matchCard::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40%;
+  bottom: 0;
+  background: linear-gradient(270deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: 0 10px 0 0;
 }
 
 .matchCard:hover {
-  border-color: #2a2a4e;
+  border-color: var(--parrot-green-dim);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Blurred Background */
-.blurredBg {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.blurImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(20px) brightness(0.3);
-  transform: scale(1.1);
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-.blurImageLoaded {
-  opacity: 0.5;
-}
-
-/* Desktop: Portrait Card */
-.bannerContainer {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16/9;
-  background: #0f0f13;
-  overflow: hidden;
-  flex-shrink: 0;
-  z-index: 1;
-}
-
-.matchBanner {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease, opacity 0.5s ease;
-  opacity: 0;
-}
-
-.matchBannerLoaded {
-  opacity: 1;
-}
-
-.matchCard:hover .matchBannerLoaded {
-  transform: scale(1.05);
-}
-
-/* Skeleton Shimmer */
-.skeletonShimmer {
-  position: absolute;
-  inset: 0;
-  background: #1a1a2e;
-  background-image: linear-gradient(
-    90deg, 
-    #1a1a2e 25%, 
-    #252538 50%, 
-    #1a1a2e 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite linear;
-}
-
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* Badges */
+/* LIVE Badge */
 .liveBadge {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  background: #e91916;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 3px;
-  letter-spacing: 0.5px;
-  box-shadow: 0 0 10px rgba(233, 25, 22, 0.5);
-}
-
-.viewsBadge {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
+  top: 10px;
+  right: 12px;
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 3px 8px;
-  border-radius: 3px;
-}
-
-.viewsDot {
-  width: 5px;
-  height: 5px;
-  background: #e91916;
-  border-radius: 50%;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  z-index: 10;
+  letter-spacing: 0.5px;
 }
 
 .viewsCount {
-  font-size: 11px;
-  font-weight: 600;
-  color: #fff;
+  color: #ccc;
+  font-size: 10px;
+  margin-left: 2px;
 }
 
-/* Info Section */
-.matchInfo {
-  padding: 14px;
+.liveDot {
+  width: 6px;
+  height: 6px;
+  background: #ee0000;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Badge Wrapper + Shadow */
+.badgeWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badgeShadow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(12px) saturate(1.5);
+  opacity: 0.2;
+}
+
+.badgeShadow img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Teams Section */
+.teamsSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   flex: 1;
+  position: relative;
+}
+
+.team {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
   position: relative;
   z-index: 1;
-  background: linear-gradient(to bottom, transparent, rgba(10, 10, 15, 0.8));
 }
 
-.metaRow {
+.teamBadge {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+}
+
+.teamBadgePlaceholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  position: relative;
+  z-index: 1;
+}
+
+.teamName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  line-height: 1.3;
+  position: relative;
+  z-index: 1;
+}
+
+/* Center Info */
+.centerInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 75px;
+  position: relative;
+  z-index: 1;
+}
+
+.dateText {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.centerDivider {
+  width: 100%;
+  height: 1px;
+  background: #fff;
+}
+
+.timeText {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.liveText {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--parrot-green);
+  white-space: nowrap;
+}
+
+/* Footer - Title + Sport in one row */
+.cardFooter {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-}
-
-.matchCategory {
-  font-size: 12px;
-  color: #888;
-  text-transform: capitalize;
-  font-weight: 600;
-}
-
-.matchTime {
-  font-size: 11px;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .matchTitle {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: #fff;
-  line-height: 1.3;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
-/* Mobile: Landscape Card */
+.categoryText {
+  font-size: 11px;
+  color: var(--parrot-green);
+  text-transform: capitalize;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Desktop: 4 cards per row, exact height */
+@media (min-width: 1200px) {
+  .matchCard {
+    height: 180px;
+    padding: 16px;
+  }
+  
+  .teamBadge {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+/* Tablet: 2-3 cards per row */
+@media (max-width: 1199px) and (min-width: 769px) {
+  .matchCard {
+    height: 170px;
+    padding: 14px;
+  }
+  
+  .teamBadge {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* Mobile: 1 card per row, exact height */
 @media (max-width: 768px) {
   .matchCard {
-    flex-direction: row;
-    height: 100px;
-    border: 1px solid #1a1a2e;
-    background: #0a0a0f;
-    width: 100%;
+    height: 160px;
+    padding: 14px;
   }
-  .bannerContainer {
-    width: 160px;
-    height: 100%;
-    aspect-ratio: auto;
-    flex-shrink: 0;
+  
+  .teamBadge {
+    width: 44px;
+    height: 44px;
   }
-  .matchInfo {
-    padding: 8px 12px;
-    justify-content: center;
-    flex: 1;
-    min-width: 0;
-    gap: 6px;
+  
+  .teamName {
+    font-size: 12px;
   }
+  
+  .dateText,
+  .timeText,
+  .liveText {
+    font-size: 11px;
+  }
+  
   .matchTitle {
-    font-size: 14px;
-    line-height: 1.25;
-    -webkit-line-clamp: 3;
+    font-size: 11px;
   }
-  .matchCategory {
+  
+  .categoryText {
     font-size: 10px;
-  }
-  .matchTime {
-    font-size: 9px;
-  }
-  .liveBadge {
-    font-size: 8px;
-    padding: 2px 5px;
-  }
-  .viewsBadge {
-    padding: 2px 5px;
-  }
-  .viewsCount {
-    font-size: 9px;
   }
 }

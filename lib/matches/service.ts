@@ -62,9 +62,17 @@ export interface MatchWithStatus extends APIMatch {
  * GET /api/sports
  */
 export async function fetchSports(): Promise<Sport[]> {
-  const res = await fetch(`${API_BASE}/sports`)
-  if (!res.ok) throw new Error(`Failed to fetch sports: ${res.status}`)
-  return res.json()
+  try {
+    const res = await fetch(`${API_BASE}/sports`)
+    if (!res.ok) {
+      console.warn('Failed to fetch sports, returning empty array')
+      return []
+    }
+    return res.json()
+  } catch (error) {
+    console.warn('Error fetching sports:', error)
+    return []
+  }
 }
 
 /**
@@ -72,9 +80,17 @@ export async function fetchSports(): Promise<Sport[]> {
  * GET /api/matches/[SPORT]
  */
 export async function fetchMatchesBySport(sport: string): Promise<APIMatch[]> {
-  const res = await fetch(`${API_BASE}/matches/${sport}`)
-  if (!res.ok) throw new Error(`Failed to fetch matches: ${res.status}`)
-  return res.json()
+  try {
+    const res = await fetch(`${API_BASE}/matches/${sport}`)
+    if (!res.ok) {
+      console.warn(`Failed to fetch matches for ${sport}, returning empty array`)
+      return []
+    }
+    return res.json()
+  } catch (error) {
+    console.warn(`Error fetching matches for ${sport}:`, error)
+    return []
+  }
 }
 
 /**
@@ -82,9 +98,17 @@ export async function fetchMatchesBySport(sport: string): Promise<APIMatch[]> {
  * GET /api/matches/all
  */
 export async function fetchAllMatches(): Promise<APIMatch[]> {
-  const res = await fetch(`${API_BASE}/matches/all`)
-  if (!res.ok) throw new Error(`Failed to fetch matches: ${res.status}`)
-  return res.json()
+  try {
+    const res = await fetch(`${API_BASE}/matches/all`)
+    if (!res.ok) {
+      console.warn('Failed to fetch all matches, returning empty array')
+      return []
+    }
+    return res.json()
+  } catch (error) {
+    console.warn('Error fetching all matches:', error)
+    return []
+  }
 }
 
 /**
@@ -92,9 +116,17 @@ export async function fetchAllMatches(): Promise<APIMatch[]> {
  * GET /api/matches/live
  */
 export async function fetchLiveMatches(): Promise<APIMatch[]> {
-  const res = await fetch(`${API_BASE}/matches/live`)
-  if (!res.ok) throw new Error(`Failed to fetch live matches: ${res.status}`)
-  return res.json()
+  try {
+    const res = await fetch(`${API_BASE}/matches/live`)
+    if (!res.ok) {
+      console.warn('Failed to fetch live matches, returning empty array')
+      return []
+    }
+    return res.json()
+  } catch (error) {
+    console.warn('Error fetching live matches:', error)
+    return []
+  }
 }
 
 /**
@@ -102,9 +134,17 @@ export async function fetchLiveMatches(): Promise<APIMatch[]> {
  * GET /api/matches/all/popular
  */
 export async function fetchPopularMatches(): Promise<APIMatch[]> {
-  const res = await fetch(`${API_BASE}/matches/all/popular`)
-  if (!res.ok) throw new Error(`Failed to fetch popular matches: ${res.status}`)
-  return res.json()
+  try {
+    const res = await fetch(`${API_BASE}/matches/all/popular`)
+    if (!res.ok) {
+      console.warn('Failed to fetch popular matches, returning empty array')
+      return []
+    }
+    return res.json()
+  } catch (error) {
+    console.warn('Error fetching popular matches:', error)
+    return []
+  }
 }
 
 /**
@@ -112,9 +152,17 @@ export async function fetchPopularMatches(): Promise<APIMatch[]> {
  * GET /api/stream/[source]/[id]
  */
 export async function fetchStreams(source: string, id: string): Promise<Stream[]> {
-  const res = await fetch(`${API_BASE}/stream/${source}/${id}`)
-  if (!res.ok) throw new Error(`Failed to fetch streams: ${res.status}`)
-  return res.json()
+  try {
+    const res = await fetch(`${API_BASE}/stream/${source}/${id}`)
+    if (!res.ok) {
+      console.warn('Failed to fetch streams, returning empty array')
+      return []
+    }
+    return res.json()
+  } catch (error) {
+    console.warn('Error fetching streams:', error)
+    return []
+  }
 }
 
 // ============================================

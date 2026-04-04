@@ -3,52 +3,41 @@
 import { useMatches, MatchWithStatus } from '../lib/matches'
 import { MatchCard } from './MatchCard'
 import { SportSelector } from './SportSelector'
+import { SearchBar } from './SearchBar'
+import { GoToTopButton } from './GoToTopButton'
 import { useState, useEffect, useRef, useMemo } from 'react'
-
-const SPORTS = [
-  { id: 'football', name: 'Soccer' },
-  { id: 'basketball', name: 'Basketball' },
-  { id: 'baseball', name: 'Baseball' },
-  { id: 'american-football', name: 'NFL' },
-  { id: 'hockey', name: 'Hockey' },
-  { id: 'cricket', name: 'Cricket' },
-  { id: 'motor-sports', name: 'Moto Sports' },
-  { id: 'fight', name: 'Fighting' },
-]
+import styles from './HomeContent.module.css'
 
 export function HomeContent() {
   const { matches, loading, error, searchQuery, setSearchQuery } = useMatches()
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set())
-  const [isTyping, setIsTyping] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Record<string, number>>({})
-  const [showScrollTop, setShowScrollTop] = useState(false)
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
-  const searchInputRef = useRef<HTMLInputElement>(null)
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Handle scroll for go-to-top button
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  const loadMore = (sportId: string) => {
+  const loadMore = (section: string) => {
     setExpandedSections(prev => ({
       ...prev,
-      [sportId]: (prev[sportId] || 20) + 20
+      [section]: (prev[section] || 20) + 20
     }))
   }
 
   // Filter matches: basketball always included (uses local banner if needed), others need valid poster
+  // Also filter out matches with "DB" in the title and matches without team logos
   const matchesWithBanners = useMemo(() => {
     return matches.filter(m => {
+      // Filter out matches with "DB" in title
+      if (m.title.toUpperCase().includes('DB')) return false
+      // Filter out TBD vs TBD matches (no real team names)
+      const homeName = m.teams?.home?.name
+      const awayName = m.teams?.away?.name
+      // Filter if both teams are TBD or missing
+      const homeIsTbd = !homeName || homeName.toUpperCase() === 'TBD'
+      const awayIsTbd = !awayName || awayName.toUpperCase() === 'TBD'
+      if (homeIsTbd && awayIsTbd) return false
+      // Filter out matches without team logos/badges on home page
+      const hasHomeBadge = m.teams?.home?.badge && m.teams.home.badge.trim() !== ''
+      const hasAwayBadge = m.teams?.away?.badge && m.teams.away.badge.trim() !== ''
+      if (!hasHomeBadge && !hasAwayBadge) return false
       // Basketball matches are always included (they can use local ncaab banner)
       if (m.category === 'basketball') return true
       // For other categories, require a valid poster
@@ -57,36 +46,67 @@ export function HomeContent() {
     })
   }, [matches])
 
-  // Group matches by status and category - filtered by search
-  // LIVE matches ONLY go to live section, NOT in category sections
-  const { liveMatches, matchesByCategory } = useMemo(() => {
+  // Group matches: LIVE and POPULAR only
+  const { liveMatches, popularMatches } = useMemo(() => {
+    // Double check: filter out DB titles again
+    const noDbMatches = matchesWithBanners.filter(m => !m.title.toUpperCase().includes('DB'))
+
     // First filter by search query
     const searchedMatches = searchQuery.trim()
-      ? matchesWithBanners.filter(m =>
+      ? noDbMatches.filter(m =>
           m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           m.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
           (m.teams?.home?.name.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
           (m.teams?.away?.name.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
         )
-      : matchesWithBanners
+      : noDbMatches
 
-    // LIVE matches - ONLY for the Live section
-    const live = searchedMatches.filter(m => m.status === 'live')
+    // LIVE matches - Max 5 per sport, ranked by inverse count (fewer = higher rank)
+    const allLive = searchedMatches.filter(m => m.status === 'live')
     
-    // Category matches - EXPLICITLY exclude live matches
-    const byCategory: Record<string, MatchWithStatus[]> = {}
-
-    SPORTS.forEach(sport => {
-      // Strict filter: must match category AND must NOT be live
-      const sportMatches = searchedMatches.filter(m =>
-        m.category === sport.id && m.status !== 'live'
-      )
-      if (sportMatches.length > 0) {
-        byCategory[sport.id] = sportMatches
-      }
+    // Group live matches by sport
+    const liveBySport: Record<string, MatchWithStatus[]> = {}
+    allLive.forEach(match => {
+      const sport = match.category
+      if (!liveBySport[sport]) liveBySport[sport] = []
+      liveBySport[sport].push(match)
+    })
+    
+    // Sort sports by inverse count (fewer matches = higher priority)
+    const sortedSports = Object.entries(liveBySport).sort((a, b) => a[1].length - b[1].length)
+    
+    // Take max 5 from each sport, maintain sorted order
+    const live: MatchWithStatus[] = []
+    sortedSports.forEach(([sport, matches]) => {
+      live.push(...matches.slice(0, 5))
     })
 
-    return { liveMatches: live, matchesByCategory: byCategory }
+    // POPULAR matches - EXPLICITLY exclude live matches (they have their own section)
+    let popular = searchedMatches.filter(m =>
+      m.popular === true && m.status !== 'live'
+    )
+
+    // If not searching, apply content restrictions to popular matches
+    if (!searchQuery.trim()) {
+      // Separate cricket/motor-sports from other sports
+      const restrictedSports = ['cricket', 'motor-sports']
+      const otherSports = popular.filter(m => !restrictedSports.includes(m.category))
+      const restrictedMatches = popular.filter(m => restrictedSports.includes(m.category))
+
+      // Top 20: Only other sports (no cricket/motor-sports)
+      const top20 = otherSports.slice(0, 20)
+
+      // Remaining 10: Can include cricket/motor-sports
+      const remaining = [...otherSports.slice(20), ...restrictedMatches].slice(0, 10)
+
+      // Combine: top 20 + 10 more (max 30 total)
+      popular = [...top20, ...remaining]
+    } else {
+      // When searching, just limit to 30
+      popular = popular.slice(0, 30)
+    }
+
+    return { liveMatches: live, popularMatches: popular }
   }, [matchesWithBanners, searchQuery])
 
   // Intersection Observer for lazy loading sections
@@ -124,40 +144,66 @@ export function HomeContent() {
     }
   }
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setSearchQuery(value)
+  // Render matches with date separators
+  const renderMatchesWithDateSeparators = (matches: MatchWithStatus[]) => {
+    const elements: React.ReactNode[] = []
+    let lastDate = ''
+    let isFirst = true
 
-    // Show typing indicator
-    setIsTyping(true)
+    matches.forEach((match) => {
+      const matchDate = new Date(match.date)
+      const now = new Date()
+      const tomorrow = new Date(now)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      
+      let dateLabel = matchDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      
+      if (matchDate.toDateString() === now.toDateString()) {
+        dateLabel = 'Today'
+      } else if (matchDate.toDateString() === tomorrow.toDateString()) {
+        dateLabel = 'Tomorrow'
+      }
 
-    // Debounce typing indicator
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current)
-    }
-    typingTimeoutRef.current = setTimeout(() => {
-      setIsTyping(false)
-    }, 500)
-  }
+      // Only add separator when date changes (skip first "Today")
+      if (dateLabel !== lastDate && !isFirst) {
+        elements.push(
+          <div key={`separator-${match.id}`} className={styles.dateSeparator}>
+            <div className={styles.separatorLine} />
+            <span className={styles.separatorDate}>{dateLabel}</span>
+            <div className={styles.separatorLine} />
+          </div>
+        )
+      }
 
-  const clearSearch = () => {
-    setSearchQuery('')
-    searchInputRef.current?.focus()
+      elements.push(<MatchCard key={match.id} match={match} />)
+      lastDate = dateLabel
+      isFirst = false
+    })
+
+    return elements
   }
 
   return (
     <>
-      <main className="home-main">
-        <div className="content-wrapper">
+      <main className={styles.main}>
+        <div className={styles.contentWrapper}>
           {/* Category Selector */}
-          <section className="selector-section">
-            <h2 className="section-heading">Categories</h2>
+          <section className={styles.selectorSection}>
+            <div className={styles.sectionHeader}>
+              <svg className={styles.sectionIcon} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              <h2 className={styles.sectionHeading}>Categories</h2>
+            </div>
             <SportSelector onSelectSport={scrollToSection} />
           </section>
 
           {/* Error */}
           {error && (
-            <div className="error-box">
+            <div className={styles.errorBox}>
               {error}
             </div>
           )}
@@ -172,118 +218,62 @@ export function HomeContent() {
 
           {/* Empty state - no matches at all */}
           {!loading && matchesWithBanners.length === 0 && (
-            <div className="empty-state">
-              <p className="empty-title">No matches available</p>
-              <p className="empty-subtitle">Check back later for upcoming events</p>
+            <div className={styles.emptyState}>
+              <p className={styles.emptyTitle}>No matches available</p>
+              <p className={styles.emptySubtitle}>Check back later for upcoming events</p>
             </div>
           )}
 
           {/* Empty state - search has no results */}
-          {!loading && searchQuery.trim() !== '' && liveMatches.length === 0 && Object.keys(matchesByCategory).length === 0 && (
-            <div className="empty-state">
+          {!loading && searchQuery.trim() !== '' && liveMatches.length === 0 && popularMatches.length === 0 && (
+            <div className={styles.emptyState}>
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#444" strokeWidth="1.5">
                 <circle cx="11" cy="11" r="8"></circle>
                 <path d="m21 21-4.35-4.35"></path>
                 <line x1="8" y1="11" x2="14" y2="11"></line>
               </svg>
-              <p className="empty-title">No matches found for "{searchQuery}"</p>
-              <p className="empty-subtitle">Try a different search term</p>
-              <button onClick={clearSearch} className="clear-btn">Clear Search</button>
+              <p className={styles.emptyTitle}>No matches found for "{searchQuery}"</p>
+              <p className={styles.emptySubtitle}>Try a different search term</p>
+              <button onClick={() => setSearchQuery('')} className={styles.clearBtn}>Clear Search</button>
             </div>
           )}
 
           {/* LIVE Section */}
           {!loading && (
-            <section className="matches-section" ref={el => { sectionRefs.current['live'] = el }} data-section="live">
+            <section className={styles.matchesSection} ref={el => { sectionRefs.current['live'] = el }} data-section="live">
               <SectionHeader title="Live Now" count={liveMatches.length} />
               {liveMatches.length > 0 ? (
-                <div className="matches-grid">
-                  {liveMatches.slice(0, visibleSections.has('live') ? liveMatches.length : 10).map(match => (
-                    <MatchCard key={match.id} match={match} />
-                  ))}
+                <div className={styles.matchesGrid}>
+                  {renderMatchesWithDateSeparators(liveMatches.slice(0, visibleSections.has('live') ? liveMatches.length : 10))}
                 </div>
               ) : (
-                <div className="no-live-message">
+                <div className={styles.noLiveMessage}>
                   <p>No matches are live right now. Check below for what's big coming up!</p>
                 </div>
               )}
             </section>
           )}
 
-          {/* Category Sections */}
-          {!loading && SPORTS.map(sport => {
-            const sportMatches = matchesByCategory[sport.id] || []
-            if (sportMatches.length === 0) return null
-
-            const displayedCount = expandedSections[sport.id] || Math.min(20, sportMatches.length)
-            const hasMore = sportMatches.length > displayedCount
-
-            return (
-              <section
-                key={sport.id}
-                className="matches-section"
-                ref={el => { sectionRefs.current[sport.id] = el }}
-                data-section={sport.id}
-              >
-                <SectionHeader title={sport.name} count={sportMatches.length} />
-                <div className="matches-grid">
-                  {sportMatches.slice(0, displayedCount).map(match => (
-                    <MatchCard key={match.id} match={match} />
-                  ))}
+          {/* POPULAR Section */}
+          {!loading && (
+            <section className={styles.matchesSection} ref={el => { sectionRefs.current['popular'] = el }} data-section="popular">
+              <SectionHeader title="Popular" count={popularMatches.length} />
+              {popularMatches.length > 0 ? (
+                <div className={styles.matchesGrid}>
+                  {renderMatchesWithDateSeparators(popularMatches)}
                 </div>
-                {hasMore && (
-                  <div className="load-more-container">
-                    <button onClick={() => loadMore(sport.id)} className="load-more-btn">
-                      Load More ({sportMatches.length - displayedCount} remaining)
-                    </button>
-                  </div>
-                )}
-              </section>
-            )
-          })}
+              ) : (
+                <div className={styles.noLiveMessage}>
+                  <p>No popular matches available at the moment.</p>
+                </div>
+              )}
+            </section>
+          )}
         </div>
       </main>
 
-      {/* Go to Top Button */}
-      {showScrollTop && (
-        <button onClick={scrollToTop} className="go-to-top-btn" aria-label="Go to top">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="18 15 12 9 6 15"></polyline>
-          </svg>
-        </button>
-      )}
-
-      {/* Mobile Search Bar */}
-      <div className="mobile-search">
-        <div className="mobile-search-wrapper">
-          {isTyping ? (
-            <div className="loading-spinner">
-              <div className="spinner-arc"></div>
-            </div>
-          ) : (
-            <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          )}
-          <input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Search matches..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="mobile-search-input"
-          />
-          {searchQuery && (
-            <button onClick={clearSearch} className="clear-search-btn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
+      <GoToTopButton />
+      <SearchBar value={searchQuery} onChange={setSearchQuery} />
     </>
   )
 }
@@ -294,49 +284,17 @@ export function HomeContent() {
 
 function SectionHeader({ title, count }: { title: string; count: number }) {
   const isLive = title === 'Live Now'
+  const isPopular = title === 'Popular'
   return (
-    <div className="section-header">
-      {isLive && <span className="live-dot" />}
-      <h2 className="section-title">{title}</h2>
-      <span className="section-count">{count}</span>
-      <style jsx>{`
-        .section-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 18px;
-          padding-bottom: 14px;
-          border-bottom: 1px solid #1a1a2e;
-        }
-        .live-dot {
-          width: 8px;
-          height: 8px;
-          background: #e91916;
-          border-radius: 50%;
-          box-shadow: 0 0 10px rgba(233, 25, 22, 0.8), 0 0 20px rgba(233, 25, 22, 0.4);
-          animation: pulse 2s ease-in-out infinite;
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.7; transform: scale(0.9); }
-        }
-        .section-title {
-          font-size: 20px;
-          font-weight: 700;
-          color: #fff;
-          margin: 0;
-          letter-spacing: -0.3px;
-        }
-        .section-count {
-          font-size: 13px;
-          font-weight: 600;
-          color: #888;
-          background: rgba(136, 136, 136, 0.1);
-          padding: 3px 10px;
-          border-radius: 6px;
-          border: 1px solid rgba(136, 136, 136, 0.2);
-        }
-      `}</style>
+    <div className={styles.sectionHeader}>
+      {isLive && <span className={styles.liveDot} />}
+      {isPopular && (
+        <svg className={styles.sectionIcon} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+      )}
+      <h2 className={styles.sectionTitle}>{title}</h2>
+      <span className={styles.sectionCount}>{count}</span>
     </div>
   )
 }
@@ -347,95 +305,46 @@ function SectionHeader({ title, count }: { title: string; count: number }) {
 
 function SectionSkeleton({ title }: { title: string }) {
   return (
-    <section className="skeleton-section">
-      <div className="skeleton-header">
-        <div className="skeleton-title" />
-        <div className="skeleton-count" />
+    <section className={styles.skeletonSection}>
+      <div className={styles.skeletonHeader}>
+        <div className={styles.skeletonTitle} />
+        <div className={styles.skeletonCount} />
       </div>
-      <div className="skeleton-grid">
+      <div className={styles.matchesGrid}>
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="skeleton-card">
-            <div className="skeleton-banner" />
-          </div>
+          <SkeletonMatchCard key={i} />
         ))}
       </div>
-      <style jsx>{`
-        .skeleton-section {
-          margin-bottom: 40px;
-        }
-        .skeleton-header {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 16px;
-          padding-bottom: 12px;
-          border-bottom: 1px solid #1a1a2e;
-        }
-        .skeleton-title {
-          width: 100px;
-          height: 20px;
-          background: #1a1a2e;
-          border-radius: 4px;
-          animation: shimmer 1.5s infinite;
-          background-image: linear-gradient(90deg, #1a1a2e 25%, #252538 50%, #1a1a2e 75%);
-          background-size: 200% 100%;
-        }
-        .skeleton-count {
-          width: 30px;
-          height: 16px;
-          background: #1a1a2e;
-          border-radius: 4px;
-          animation: shimmer 1.5s infinite;
-          background-image: linear-gradient(90deg, #1a1a2e 25%, #252538 50%, #1a1a2e 75%);
-          background-size: 200% 100%;
-        }
-        .skeleton-grid {
-          display: grid;
-          grid-template-columns: repeat(5, 1fr);
-          gap: 12px;
-        }
-        .skeleton-card {
-          background: #0f0f13;
-          border-radius: 6px;
-          overflow: hidden;
-          border: 1px solid #1a1a2e;
-        }
-        .skeleton-banner {
-          aspect-ratio: 16/9;
-          background: #1a1a2e;
-          animation: shimmer 1.5s infinite;
-          background-image: linear-gradient(90deg, #1a1a2e 25%, #252538 50%, #1a1a2e 75%);
-          background-size: 200% 100%;
-        }
-        @keyframes shimmer {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-        @media (max-width: 1400px) {
-          .skeleton-grid {
-            grid-template-columns: repeat(4, 1fr);
-          }
-        }
-        @media (max-width: 1024px) {
-          .skeleton-grid {
-            grid-template-columns: repeat(3, 1fr);
-          }
-        }
-        @media (max-width: 768px) {
-          .skeleton-grid {
-            grid-template-columns: 1fr;
-          }
-          .skeleton-card {
-            display: flex;
-            height: 100px;
-          }
-          .skeleton-banner {
-            width: 160px;
-            height: 100%;
-            aspect-ratio: auto;
-          }
-        }
-      `}</style>
     </section>
+  )
+}
+
+// ============================================
+// SKELETON MATCH CARD
+// ============================================
+
+function SkeletonMatchCard() {
+  return (
+    <div className="skeleton-match-card">
+      <div className="skeleton-teams">
+        <div className="skeleton-team">
+          <div className="skeleton-badge" />
+          <div className="skeleton-name" />
+        </div>
+        <div className="skeleton-center">
+          <div className="skeleton-date" />
+          <div className="skeleton-divider" />
+          <div className="skeleton-time" />
+        </div>
+        <div className="skeleton-team">
+          <div className="skeleton-badge" />
+          <div className="skeleton-name" />
+        </div>
+      </div>
+      <div className="skeleton-footer">
+        <div className="skeleton-title-line" />
+        <div className="skeleton-category" />
+      </div>
+    </div>
   )
 }

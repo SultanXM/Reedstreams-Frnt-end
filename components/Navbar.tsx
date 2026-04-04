@@ -1,34 +1,28 @@
-// my beloved navbaar <3
 'use client'
 
 import Link from 'next/link'
-import { useState, useRef, useEffect, useContext } from 'react'
+import { useState, useRef, useContext, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import AuthModal from './AuthModal'
-import { MatchesContext, getPosterUrl } from '../lib/matches'
+import { MatchesContext } from '../lib/matches'
 import styles from './Navbar.module.css'
 
 export default function Navbar() {
-  // states for menu and search vibes
   const [menuOpen, setMenuOpen] = useState(false)
-  const [menuVisible, setMenuVisible] = useState(false)
-  const [translateY, setTranslateY] = useState(0)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [searchFocused, setSearchFocused] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
   const { user, logout } = useAuth()
 
-  // getting matches data for search popup
   const matchesContext = useContext(MatchesContext)
+  const setSearchQueryGlobal = matchesContext?.setSearchQuery ?? (() => {})
   const searchQuery = matchesContext?.searchQuery ?? ''
-  const setSearchQuery = matchesContext?.setSearchQuery ?? (() => {})
-  const filteredMatches = matchesContext?.filteredMatches ?? []
 
-  const touchStartY = useRef(0)
-  const touchCurrentY = useRef(0)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const burgerBtnRef = useRef<HTMLButtonElement>(null)
 
-  // check if we scrolled to add that blur effect
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20)
@@ -37,292 +31,287 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const openMenu = () => {
-    setMenuVisible(true)
-    setTimeout(() => setMenuOpen(true), 10)
-  }
-
-  const closeMenu = () => {
-    setMenuOpen(false)
-    setTranslateY(0)
-    setTimeout(() => setMenuVisible(false), 300)
-  }
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node
+      // Don't close if clicking the burger button
+      if (burgerBtnRef.current && burgerBtnRef.current.contains(target)) {
+        return
+      }
+      // Close if clicking outside the dropdown
+      if (menuRef.current && !menuRef.current.contains(target)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleLogout = () => {
     logout()
-    closeMenu()
+    setMenuOpen(false)
   }
 
-  // mobile swipe logic starts here
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY
-    touchCurrentY.current = e.touches[0].clientY
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQueryGlobal(e.target.value)
   }
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchCurrentY.current = e.touches[0].clientY
-    const diff = touchCurrentY.current - touchStartY.current
-    if (diff > 0) {
-      setTranslateY(diff)
-    }
+  const clearSearch = () => {
+    setSearchQueryGlobal('')
+    searchInputRef.current?.focus()
   }
-
-  const handleTouchEnd = () => {
-    const diff = touchCurrentY.current - touchStartY.current
-    if (diff > 80) {
-      closeMenu() // if swiped down enough, just close it
-    } else {
-      setTranslateY(0) // otherwise snap back
-    }
-  }
-
-  useEffect(() => {
-    if (!menuOpen) {
-      setTranslateY(0)
-    }
-  }, [menuOpen])
 
   return (
     <>
-      <nav className={`${styles.navbar} ${scrolled ? styles.navbarScrolled : ''} ${scrolled ? 'scrolled' : ''}`}>
+      <nav className={`${styles.navbar} ${scrolled ? styles.navbarScrolled : ''}`}>
         <div className={styles.navContent}>
 
           <Link href="/" className={styles.logo}>
-            Reedstreams
+            <span className={styles.logoWhite}>Reed</span>
+            <span className={styles.logoGreen}>streams</span>
           </Link>
 
-          {/* search bar for the site */}
-          <div className={styles.desktopSearch}>
-            <div className={styles.searchWrapper}>
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={searchFocused ? "#888" : "#666"}
-                strokeWidth="2"
-                className={styles.searchIcon}
-              >
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-              </svg>
-              <input
-                type="text"
-                placeholder="Search matches..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
-                className={`${styles.searchInput} ${searchFocused ? styles.searchInputFocused : ''}`}
-              />
-            </div>
-
-            {/* popup when no results for search */}
-            {searchFocused && searchQuery.trim() !== '' && filteredMatches.length === 0 && (
-              <div className={styles.searchPopup}>
-                <div className={styles.noResults}>
-                  No results for "{searchQuery}"
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className={styles.desktopLinks}>
-
-            <Link href="/multiview" className={`${styles.navLink} nav-link`}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-              Multiview
-            </Link>
-
-            <Link href="/discord" className={`${styles.navLink} nav-link`}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-              </svg>
-              Discord
-            </Link>
-
-            <Link href="https://bingebox.co" target="_blank" className={`${styles.navLink} nav-link`}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
-                <line x1="7" y1="2" x2="7" y2="22"></line>
-                <line x1="17" y1="2" x2="17" y2="22"></line>
-                <line x1="2" y1="12" x2="22" y2="12"></line>
-                <line x1="2" y1="7" x2="7" y2="7"></line>
-                <line x1="2" y1="17" x2="7" y2="17"></line>
-                <line x1="17" y1="17" x2="22" y2="17"></line>
-                <line x1="17" y1="7" x2="22" y2="7"></line>
-              </svg>
-              Movies
-            </Link>
-
-            {/* login/logout logic for desktop */}
-            {user ? (
-              <>
-                <Link href="/profile" className={`${styles.navLink} nav-link`}>
-                  {user.username}
-                </Link>
-                <button onClick={logout} className={`${styles.navLink} ${styles.logoutBtn} nav-link logout-btn`}>
-                  Logout
-                </button>
-              </>
-            ) : (
+          {/* Search Bar */}
+          <div className={`${styles.searchBar} ${searchFocused ? styles.searchBarFocused : ''}`}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search matches..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              className={styles.searchBarInput}
+            />
+            {searchQuery && (
               <button
-                onClick={() => {
-                  setAuthModalOpen(true)
-                  closeMenu()
-                }}
-                className={`${styles.navLink} ${styles.guestBtn} nav-link`}
+                type="button"
+                onClick={clearSearch}
+                className={styles.searchBarClose}
               >
-                Guest
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
               </button>
             )}
           </div>
 
-          {/* burger menu for mobile */}
+          {/* Desktop Actions */}
+          <div className={styles.desktopActions}>
+            {/* Multiview Link */}
+            <Link href="/multiview" className={styles.navLink}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+              </svg>
+              <span>Multiview</span>
+            </Link>
+
+            {/* Discord Link */}
+            <a
+              href="https://discord.gg/reedstreams"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.navLink}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.942 5.556a16.299 16.299 0 0 0-4.126-1.3 12.045 12.045 0 0 0-.524 1.074 15.19 15.19 0 0 0-4.584 0 12.118 12.118 0 0 0-.526-1.074 16.247 16.247 0 0 0-4.123 1.3C1.87 9.628 1.146 13.603 1.5 17.522a16.541 16.541 0 0 0 5.005 2.526c.406-.553.77-1.14 1.086-1.754a10.893 10.893 0 0 1-1.56-.743c.125-.093.248-.19.368-.29a12.975 12.975 0 0 0 10.052 0c.12.1.244.197.368.29a10.93 10.93 0 0 1-1.563.745c.317.613.682 1.2 1.088 1.752a16.479 16.479 0 0 0 5.012-2.527c.41-4.527-.99-8.473-3.256-11.965zM8.52 14.908c-1.026 0-1.86-.92-1.86-2.048 0-1.128.817-2.048 1.86-2.048 1.047 0 1.878.92 1.86 2.048 0 1.128-.82 2.048-1.86 2.048zm6.96 0c-1.026 0-1.86-.92-1.86-2.048 0-1.128.817-2.048 1.86-2.048 1.047 0 1.878.92 1.86 2.048 0 1.128-.817 2.048-1.86 2.048z"/>
+              </svg>
+              <span>Discord</span>
+            </a>
+
+            {/* Movies Link */}
+            <a
+              href="https://bingebox.co"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.navLink}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                <line x1="7" y1="2" x2="7" y2="22"></line>
+                <line x1="17" y1="2" x2="17" y2="22"></line>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+              </svg>
+              <span>Movies</span>
+            </a>
+
+            {/* Auth Buttons */}
+            {user ? (
+              <Link href="/profile" className={styles.profileBtn}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>{user.username}</span>
+              </Link>
+            ) : (
+              <button
+                onClick={() => setAuthModalOpen(true)}
+                className={styles.loginBtn}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>Sign In</span>
+              </button>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
           <div className={styles.mobileMenu}>
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation()
                 if (!user) {
                   setAuthModalOpen(true)
                 } else {
                   window.location.href = '/profile'
                 }
               }}
-              className={styles.mobileGuestBtn}
+              className={styles.mobileUserBtn}
             >
               {user ? user.username : 'Guest'}
             </button>
-            <button onClick={openMenu} className={styles.burgerBtn}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
+            <button
+              ref={burgerBtnRef}
+              onClick={(e) => {
+                e.stopPropagation()
+                setMenuOpen(!menuOpen)
+              }}
+              className={`${styles.burgerBtn} ${menuOpen ? styles.burgerBtnOpen : ''}`}
+              aria-label="Toggle menu"
+            >
+              {menuOpen ? (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              ) : (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+              )}
             </button>
           </div>
         </div>
       </nav>
 
-      {/* mobile menu panel and overlay logic */}
-      {menuVisible && (
-        <div
-          className={`${styles.mobileMenuOverlay} ${menuOpen ? styles.mobileMenuOverlayOpen : ''}`}
-          onClick={closeMenu}
-        >
-          <div
-            className={`${styles.mobileMenuPanel} ${menuOpen ? styles.mobileMenuPanelOpen : ''}`}
-            onClick={(e) => e.stopPropagation()}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            style={{
-              transform: menuOpen ? 'translateY(0)' : `translateY(${translateY || 100}%)`,
-            }}
-          >
-            {/* drag handle for the mobile sheet */}
-            <div
-              className={styles.mobileMenuHandle}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-            />
+      {/* Mobile Dropdown Menu */}
+      {menuOpen && (
+        <div ref={menuRef} className={styles.mobileDropdown}>
+          <div className={styles.mobileDropdownContent}>
+            <Link
+              href="/multiview"
+              onClick={() => setMenuOpen(false)}
+              className={styles.mobileDropdownItem}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              <span>Multiview</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={styles.itemArrow}>
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </Link>
 
-            <div className={styles.mobileLinksContainer}>
-              <Link
-                href="/multiview"
-                onClick={closeMenu}
-                className={styles.mobileNavLink}
+            <a
+              href="https://discord.gg/reedstreams"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.mobileDropdownItem}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.942 5.556a16.299 16.299 0 0 0-4.126-1.3 12.045 12.045 0 0 0-.524 1.074 15.19 15.19 0 0 0-4.584 0 12.118 12.118 0 0 0-.526-1.074 16.247 16.247 0 0 0-4.123 1.3C1.87 9.628 1.146 13.603 1.5 17.522a16.541 16.541 0 0 0 5.005 2.526c.406-.553.77-1.14 1.086-1.754a10.893 10.893 0 0 1-1.56-.743c.125-.093.248-.19.368-.29a12.975 12.975 0 0 0 10.052 0c.12.1.244.197.368.29a10.93 10.93 0 0 1-1.563.745c.317.613.682 1.2 1.088 1.752a16.479 16.479 0 0 0 5.012-2.527c.41-4.527-.99-8.473-3.256-11.965zM8.52 14.908c-1.026 0-1.86-.92-1.86-2.048 0-1.128.817-2.048 1.86-2.048 1.047 0 1.878.92 1.86 2.048 0 1.128-.82 2.048-1.86 2.048zm6.96 0c-1.026 0-1.86-.92-1.86-2.048 0-1.128.817-2.048 1.86-2.048 1.047 0 1.878.92 1.86 2.048 0 1.128-.817 2.048-1.86 2.048z"/>
+              </svg>
+              <span>Discord</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={styles.itemArrow}>
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </a>
+
+            <a
+              href="https://bingebox.co"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.mobileDropdownItem}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                <line x1="7" y1="2" x2="7" y2="22"></line>
+                <line x1="17" y1="2" x2="17" y2="22"></line>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+              </svg>
+              <span>Movies</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={styles.itemArrow}>
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </a>
+
+            <div className={styles.mobileDropdownDivider} />
+
+            {user ? (
+              <>
+                <Link
+                  href="/profile"
+                  onClick={() => setMenuOpen(false)}
+                  className={styles.mobileDropdownItem}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <span>{user.username}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={styles.itemArrow}>
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className={`${styles.mobileDropdownItem} ${styles.mobileDropdownLogout}`}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  <span>Logout</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={styles.itemArrow}>
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  setAuthModalOpen(true)
+                  setMenuOpen(false)
+                }}
+                className={`${styles.mobileDropdownItem} ${styles.mobileDropdownSignIn}`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="14" width="7" height="7"></rect>
-                  <rect x="3" y="14" width="7" height="7"></rect>
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-                Multiview
-              </Link>
-
-              <Link
-                href="/discord"
-                onClick={closeMenu}
-                className={styles.mobileNavLink}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                <span>Sign In</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={styles.itemArrow}>
+                  <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
-                Discord
-              </Link>
-
-              <Link
-                href="https://bingebox.co"
-                target="_blank"
-                onClick={closeMenu}
-                className={styles.mobileNavLink}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
-                  <line x1="7" y1="2" x2="7" y2="22"></line>
-                  <line x1="17" y1="2" x2="17" y2="22"></line>
-                  <line x1="2" y1="12" x2="22" y2="12"></line>
-                  <line x1="2" y1="7" x2="7" y2="7"></line>
-                  <line x1="2" y1="17" x2="7" y2="17"></line>
-                  <line x1="17" y1="17" x2="22" y2="17"></line>
-                  <line x1="17" y1="7" x2="22" y2="7"></line>
-                </svg>
-                Movies
-              </Link>
-
-              {/* auth links for mobile panel */}
-              {user ? (
-                <>
-                  <div className={styles.divider} />
-                  <Link
-                    href="/profile"
-                    onClick={closeMenu}
-                    className={`${styles.mobileNavLink} ${styles.mobileNavLinkActive}`}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    {user.username}
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className={`${styles.mobileNavLink} ${styles.mobileLogoutBtn}`}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                      <polyline points="16 17 21 12 16 7"></polyline>
-                      <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className={styles.divider} />
-                  <button
-                    onClick={() => {
-                      setAuthModalOpen(true)
-                      closeMenu()
-                    }}
-                    className={`${styles.mobileNavLink} ${styles.mobileNavLinkActive}`}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    Login / Signup
-                  </button>
-                </>
-              )}
-            </div>
+              </button>
+            )}
           </div>
         </div>
       )}
