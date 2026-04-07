@@ -90,19 +90,7 @@
 }
 
 .badgeShadow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: -1;
-  filter: blur(12px) saturate(1.5);
-  opacity: 0.2;
+  display: none;
 }
 
 .badgeShadow img {
