@@ -139,12 +139,6 @@ export function MatchCard({ match }: MatchCardProps) {
             <span className={styles.teamName}>{awayName}</span>
           </div>
         </div>
-
-        {/* Footer - Title + Sport in one row */}
-        <div className={styles.cardFooter}>
-          <span className={styles.matchTitle}>{title}</span>
-          <span className={styles.categoryText}>{categoryName}</span>
-        </div>
       </div>
     </Link>
   )

@@ -9,8 +9,7 @@
   background: var(--bg-secondary);
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid var(--border-color);
-  transition: all 0.2s ease;
+border: 0.5px solid #A4C6394D;  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -266,7 +265,7 @@
     height: 160px;
     padding: 14px;
   }
-  
+
   .teamBadge {
     width: 44px;
     height: 44px;

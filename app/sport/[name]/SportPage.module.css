@@ -504,11 +504,11 @@
 
   .matchesGrid {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 16px;
   }
 
   .skeletonGrid {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 16px;
   }
 }
