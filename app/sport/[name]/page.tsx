@@ -7,6 +7,7 @@ import Navbar from '../../../components/Navbar'
 import { MatchCard } from '../../../components/MatchCard'
 import { SearchBar } from '../../../components/SearchBar'
 import { GoToTopButton } from '../../../components/GoToTopButton'
+import { ClientOnly } from '../../../components/ClientOnly'
 import { MatchesProvider, useMatches, MatchWithStatus } from '../../../lib/matches'
 import styles from './SportPage.module.css'
 
@@ -43,7 +44,9 @@ const SPORT_EMOJIS: Record<string, string> = {
 export default function SportPage() {
   return (
     <MatchesProvider>
-      <SportPageContent />
+      <ClientOnly>
+        <SportPageContent />
+      </ClientOnly>
     </MatchesProvider>
   )
 }

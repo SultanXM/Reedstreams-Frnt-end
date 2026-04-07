@@ -40,7 +40,7 @@ export default function RootLayout({
           `
         }} />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <AuthProvider>
           <MatchesProvider>
             {children}

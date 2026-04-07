@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import Navbar from '../../../components/Navbar'
 import Chat from '../../../components/Chat'
+import { ClientOnly } from '../../../components/ClientOnly'
 import { AdShieldErrorBoundary } from '../../../components/AdShieldErrorBoundary'
 import { useUniversalAdBlocker } from '../../../hooks/useUniversalAdBlocker'
 import { trackView } from '../../../lib/api'
@@ -173,7 +174,7 @@ export default function WatchPage() {
     return (
         <>
             <Navbar />
-
+            <ClientOnly>
             <main className={styles.watchMain}>
                 <div className={styles.watchLayout}>
 
@@ -277,6 +278,7 @@ export default function WatchPage() {
 
                 </div>
             </main>
+            </ClientOnly>
 
             {/* Report Popup */}
             {showReportPopup && (
