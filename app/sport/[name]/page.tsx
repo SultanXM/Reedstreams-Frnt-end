@@ -7,7 +7,7 @@ import Navbar from '../../../components/Navbar'
 import { MatchCard } from '../../../components/MatchCard'
 import { SearchBar } from '../../../components/SearchBar'
 import { GoToTopButton } from '../../../components/GoToTopButton'
-import { useMatches, MatchWithStatus } from '../../../lib/matches'
+import { MatchesProvider, useMatches, MatchWithStatus } from '../../../lib/matches'
 import styles from './SportPage.module.css'
 
 const SPORT_NAMES: Record<string, string> = {
@@ -41,6 +41,14 @@ const SPORT_EMOJIS: Record<string, string> = {
 }
 
 export default function SportPage() {
+  return (
+    <MatchesProvider>
+      <SportPageContent />
+    </MatchesProvider>
+  )
+}
+
+function SportPageContent() {
   const params = useParams()
   const sportName = params.name as string
   const { matches, loading, error } = useMatches()
