@@ -10,13 +10,6 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    // Auto-recover from hydration/DOM errors
-    if (error.message?.includes('removeChild') || error.message?.includes('hydrate')) {
-      if (!sessionStorage.getItem('hydrationRecovered')) {
-        sessionStorage.setItem('hydrationRecovered', '1')
-        setTimeout(() => window.location.reload(), 200)
-      }
-    }
     console.error(error)
   }, [error])
 
@@ -32,12 +25,8 @@ export default function Error({
       padding: '20px'
     }}>
       <h2 style={{ fontSize: '24px', marginBottom: '16px' }}>Something went wrong!</h2>
-      <p style={{ color: '#888', marginBottom: '16px' }}>Reloading may fix this...</p>
       <button
-        onClick={() => {
-          sessionStorage.removeItem('hydrationRecovered')
-          window.location.reload()
-        }}
+        onClick={() => reset()}
         style={{
           padding: '12px 24px',
           background: '#141420',
@@ -47,7 +36,7 @@ export default function Error({
           cursor: 'pointer'
         }}
       >
-        Reload Page
+        Try again
       </button>
     </div>
   )

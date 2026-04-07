@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useState, useRef, useContext, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import AuthModal from './AuthModal'
@@ -66,10 +65,10 @@ export default function Navbar() {
       <nav className={`${styles.navbar} ${scrolled ? styles.navbarScrolled : ''}`}>
         <div className={styles.navContent}>
 
-          <Link href="/" className={styles.logo}>
+          <a href="/" className={styles.logo}>
             <span className={styles.logoWhite}>Reed</span>
             <span className={styles.logoGreen}>streams</span>
-          </Link>
+          </a>
 
           {/* Search Bar */}
           <div className={`${styles.searchBar} ${searchFocused ? styles.searchBarFocused : ''}`}>
@@ -104,7 +103,7 @@ export default function Navbar() {
           {/* Desktop Actions */}
           <div className={styles.desktopActions}>
             {/* Multiview Link */}
-            <Link href="/multiview" className={styles.navLink}>
+            <a href="/multiview" className={styles.navLink}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="7" height="7"></rect>
                 <rect x="14" y="3" width="7" height="7"></rect>
@@ -112,7 +111,7 @@ export default function Navbar() {
                 <rect x="14" y="14" width="7" height="7"></rect>
               </svg>
               <span>Multiview</span>
-            </Link>
+            </a>
 
             {/* Discord Link */}
             <a
@@ -145,13 +144,13 @@ export default function Navbar() {
 
             {/* Auth Buttons */}
             {user ? (
-              <Link href="/profile" className={styles.profileBtn}>
+              <a href="/profile" className={styles.profileBtn}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
                 <span>{user.username}</span>
-              </Link>
+              </a>
             ) : (
               <button
                 onClick={() => setAuthModalOpen(true)}
@@ -211,7 +210,7 @@ export default function Navbar() {
       {menuOpen && (
         <div ref={menuRef} className={styles.mobileDropdown}>
           <div className={styles.mobileDropdownContent}>
-            <Link
+            <a
               href="/multiview"
               onClick={() => setMenuOpen(false)}
               className={styles.mobileDropdownItem}
@@ -226,7 +225,7 @@ export default function Navbar() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={styles.itemArrow}>
                 <polyline points="9 18 15 12 9 6"></polyline>
               </svg>
-            </Link>
+            </a>
 
             <a
               href="https://discord.gg/reedstreams"
@@ -265,7 +264,7 @@ export default function Navbar() {
 
             {user ? (
               <>
-                <Link
+                <a
                   href="/profile"
                   onClick={() => setMenuOpen(false)}
                   className={styles.mobileDropdownItem}
@@ -278,7 +277,7 @@ export default function Navbar() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={styles.itemArrow}>
                     <polyline points="9 18 15 12 9 6"></polyline>
                   </svg>
-                </Link>
+                </a>
                 <button
                   onClick={handleLogout}
                   className={`${styles.mobileDropdownItem} ${styles.mobileDropdownLogout}`}

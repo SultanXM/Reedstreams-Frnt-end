@@ -1,13 +1,11 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import Link from 'next/link'
 import { useState, useEffect, useMemo } from 'react'
 import Navbar from '../../../components/Navbar'
 import { MatchCard } from '../../../components/MatchCard'
 import { SearchBar } from '../../../components/SearchBar'
 import { GoToTopButton } from '../../../components/GoToTopButton'
-import { ClientOnly } from '../../../components/ClientOnly'
 import { MatchesProvider, useMatches, MatchWithStatus } from '../../../lib/matches'
 import styles from './SportPage.module.css'
 
@@ -44,9 +42,7 @@ const SPORT_EMOJIS: Record<string, string> = {
 export default function SportPage() {
   return (
     <MatchesProvider>
-      <ClientOnly>
-        <SportPageContent />
-      </ClientOnly>
+      <SportPageContent />
     </MatchesProvider>
   )
 }
@@ -160,11 +156,11 @@ function SportPageContent() {
         <div className={styles.contentWrapper}>
           {/* Header */}
           <section className={styles.headerSection}>
-            <Link href="/" className={styles.backBtn}>
+            <a href="/" className={styles.backBtn}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="15 18 9 12 15 6"></polyline>
               </svg>
-            </Link>
+            </a>
             <div className={styles.headerInfo}>
               <div className={styles.sportIdentity}>
                 <span className={styles.sportEmoji}>{sportEmoji}</span>

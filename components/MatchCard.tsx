@@ -1,7 +1,6 @@
 'use client'
 
 import { MatchWithStatus, getTeamBadgeUrl } from '../lib/matches'
-import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import styles from './MatchCard.module.css'
 
@@ -67,7 +66,13 @@ export function MatchCard({ match }: MatchCardProps) {
   const timeStr = date ? formatTime(date) : ''
 
   return (
-    <Link href={`/watch/${match.id}`} className={styles.matchLink}>
+    <div
+      className={styles.matchLink}
+      onClick={() => { window.location.href = `/watch/${match.id}` }}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') window.location.href = `/watch/${match.id}` }}
+    >
       <div className={styles.matchCard}>
         {/* LIVE Badge */}
         {isLive && (
@@ -140,6 +145,6 @@ export function MatchCard({ match }: MatchCardProps) {
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   )
 }
